@@ -2,7 +2,7 @@
  *
  * jquery.clockie.js jQuery plugin
  * Author: @sebastien_chaudot
- * @Copyright Webulous
+ * Webulous
  *	
  *	Library required :
  * jquery > v10
@@ -10,6 +10,8 @@
  * js.cookie.js	
  *	bootstrap3 css
  * font awesome
+ *
+ * Demo: http://www.webulous.fr/git/clockie/clockie.html
  * 
  */
 
@@ -20,11 +22,11 @@
 		
 		var settings = $.extend({
 			collapsedInit		: true,
-			statusTimerInit	: true,
+			statusTimerInit	: 'paused',
 			positionInit		: 'right',
 			hasActionBtn		: true,
 			isDraggable			: true,
-			actionBtnTxt		: 'Affecter',
+			actionBtnTxt		: 'Assign',
 			timerColor			: '#f25824',
 			launchAction: function() {}
 		}, options);
@@ -37,7 +39,7 @@
 			
 			var elem = $(this);			
 			var collapsedDiv = settings.collapsedInit;
-			var currentTime = (typeof Cookies.get('currentTime') == 'undefined')?0:Cookies.get('currentTime');
+			var currentTime =(typeof Cookies.get('currentTime') == 'undefined')?0:Cookies.get('currentTime');
 			var timer;
 			
 			var clockieBlock = 	'<div class="btn btn-xl clk_btn"><span class="fa fa-stopwatch"></span></div>'+
@@ -62,8 +64,8 @@
 			resetPosOnClick();
 			
 			transformMSToTime(Cookies.get('currentTime'));
-	
-			var statusTimer = (typeof Cookies.get('statusTimer') == 'undefined')?'paused':Cookies.get('statusTimer');
+			
+			var statusTimer = (typeof Cookies.get('statusTimer') == 'undefined')?settings.statusTimerInit:Cookies.get('statusTimer');
 			if (statusTimer=='running') {
 				$('#startButton').css('display', 'none');
 				$('#clearButton').css('display', 'none');
@@ -76,7 +78,7 @@
 			clearTimerOnClick();
 			saveTimerOnExit();
 			
-			if (Cookies.get('clockieX') != null && Cookies.get('clockieX') > -160 && Cookies.get('clockieX') < $(window).width()-20) elem.css('right', Cookies.get('clockieX')+'px');
+			if (Cookies.get('clockieX') != null && Cookies.get('clockieX') > -160 && Cookies.get('clockieX') < $(window).width()-20) elem.css('left', Cookies.get('clockieX')+'px');
 			else $('.clk_resetpos').trigger('click');
 			
 			if (Cookies.get('clockieY') != null && Cookies.get('clockieY') < $(window).height()-20 && Cookies.get('clockieY') > -160) elem.css('top', Cookies.get('clockieY')+'px');
@@ -101,7 +103,7 @@
 			
 			// MEMO POSITION
 			function memoChronoPos() {
-				Cookies.set('clockieX', elem.css('right').replace(/[^-\d\.]/g, ''), { expires: 7 });
+				Cookies.set('clockieX', elem.css('left').replace(/[^-\d\.]/g, ''), { expires: 7 });
 				Cookies.set('clockieY', elem.css('top').replace(/[^-\d\.]/g, ''), { expires: 7 });
 				Cookies.set('collapsedDiv', collapsedDiv, { expires: 7 });				
 				//console.log(Cookies.get('clockieX'));
@@ -172,10 +174,13 @@
 			}
 
 			function transformMSToTime(time) {
-				var hours = parseInt(time / 3600000);
-				var minutes = parseInt(time / 60000) - (hours * 60);
-				var seconds = parseInt(time / 1000) - (minutes * 60) - (hours * 3600);
-				$('#timer').text(addZeros(hours, 2) + ':' + addZeros(minutes, 2) + ':' + addZeros(seconds, 2));
+				if (time) {
+					var hours = parseInt(time / 3600000);
+					var minutes = parseInt(time / 60000) - (hours * 60);
+					var seconds = parseInt(time / 1000) - (minutes * 60) - (hours * 3600);
+					$('#timer').text(addZeros(hours, 2) + ':' + addZeros(minutes, 2) + ':' + addZeros(seconds, 2));
+				}
+				else $('#clearButton').trigger('click');
 			}
 
 			function startTimer() {
