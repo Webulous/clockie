@@ -31,3 +31,7 @@ This plugin work with js-cookie to save some values (default expiration: 7 days)
 - timer playing/running status (statusTimer)
 
 Re-positionning when clockie dragged outside (page refresh needed)
+
+Demo
+--------
+http://www.webulous.fr/git/clockie/clockie.html
