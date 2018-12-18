@@ -12,24 +12,31 @@
 	<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
 	
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.11.3/jquery.min.js" type="text/javascript"></script>
-	<script src="https://code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+	<script src="https://code.jquery.com/ui/1.11.4/jquery-ui.js" type="text/javascript"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js" type="text/javascript"></script>
 	
-	<script src="js.cookie.js"></script>
+	<script src="jquery.ui.touch-punch.js" type="text/javascript"></script>
+	<script src="js.cookie.js" type="text/javascript"></script>
 	<link href="jquery.clockie.css" rel="stylesheet" type="text/css" />
 	<script src="jquery.clockie.js" type="text/javascript"></script>
 	
+	
 	<script>
 		$(function() {
+			$('body').tooltip({selector: '[data-toggle="tooltip"]'});
+			
 			var myClockie = $("#Clockie").clockie({
 				collapsedInit		: true,
-				statusTimerInit	: true,
+				statusTimerInit	: 'running',
 				positionInit		: 'right',
 				hasActionBtn		: true,
+				hasMilliSec			: false,
 				isDraggable			: true,
 				actionBtnTxt		: 'Assign',
 				timerColor			: '#0066cc',
 				launchAction: function(data){
-					myClockie.clearPauseTimer();
+					alert(data); // data = current time in seconds (or milliseconds if option selected)
+					//myClockie.clearPauseTimer();
 				}
 			});
 		});	

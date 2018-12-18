@@ -23,6 +23,7 @@
 		var settings = $.extend({
 			collapsedInit		: true,
 			statusTimerInit	: 'paused',
+			hasMilliSec			: false,
 			positionInit		: 'right',
 			hasActionBtn		: true,
 			isDraggable			: true,
@@ -38,15 +39,18 @@
 			/******************************************************************************************************/
 			
 			var elem = $(this);			
-			var collapsedDiv = settings.collapsedInit;
-			var currentTime =(typeof Cookies.get('currentTime') == 'undefined')?0:Cookies.get('currentTime');
+			var collapsedDiv = (typeof Cookies.get('collapsedDiv') == 'undefined')?settings.collapsedInit:Cookies.get('collapsedDiv');
+			var positionDiv = (typeof Cookies.get('positionDiv') == 'undefined')?settings.positionInit:Cookies.get('positionDiv');
+			var statusTimer = (typeof Cookies.get('statusTimer') == 'undefined')?settings.statusTimerInit:Cookies.get('statusTimer');
+			var hasMilliSec = (typeof Cookies.get('hasMilliSec') == 'undefined')?settings.hasMilliSec:Cookies.get('hasMilliSec');
+			var currentTime = (typeof Cookies.get('currentTime') == 'undefined')?0:Cookies.get('currentTime');
 			var timer;
 			
 			var clockieBlock = 	'<div class="btn btn-xl clk_btn"><span class="fa fa-stopwatch"></span></div>'+
-										'<div class="btn clk_resetpos"><span class="fa fa-power-off"></span></div>'+
-										'<div class="btn clk_play" id="startButton"><span class="fa fa-play"></span></div>'+
-										'<div class="btn clk_pause" id="pauseButton"><span class="fa fa-pause"></span></div>'+
-										'<div class="btn clk_reset" id="clearButton"><span class="fa fa-redo-alt"></span></div>'+
+										'<div class="btn clk_resetpos" data-toggle="tooltip" title="Reset position"><span class="fa fa-power-off"></span></div>'+
+										'<div class="btn clk_play" id="startButton" data-toggle="tooltip" title="Play"><span class="fa fa-play"></span></div>'+
+										'<div class="btn clk_pause" id="pauseButton" data-toggle="tooltip" title="Pause"><span class="fa fa-pause"></span></div>'+
+										'<div class="btn clk_reset" id="clearButton" data-toggle="tooltip" title="Clear"><span class="fa fa-redo-alt"></span></div>'+
 										'<div class="clk_ctn">'+
 											'<div class="timer stopwatch" id="timer"></div>'+
 											( settings.hasActionBtn ?'<div class="btn_action">' + settings.actionBtnTxt + '</div>' : '')+
@@ -55,17 +59,17 @@
 			elem.html(clockieBlock);	
 			
 			$('.stopwatch').css('color', settings.timerColor);
+			if (hasMilliSec) $('.stopwatch').addClass('hasmillisec');
+			
 			elem.addClass('clockie');
 			
-			if (settings.positionInit=='left') elem.addClass('leftpos');
-			else elem.removeClass('leftpos');
+			//console.log(Cookies.get('collapsedDiv')+' | '+Cookies.get('positionDiv')+' | '+Cookies.get('clockieX'));
 			
-			expandcollapseChrono();
-			resetPosOnClick();
+			if (typeof Cookies.get('clockieX') != 'undefined') elem.css('left', Cookies.get('clockieX')+'px');
+			if (typeof Cookies.get('clockieY') != 'undefined') elem.css('top', Cookies.get('clockieY')+'px');
+			if (typeof Cookies.get('clockieX') == 'undefined' || typeof Cookies.get('clockieY') == 'undefined') resetPos();
+			if (Cookies.get('clockieX') < -170 || Cookies.get('clockieX') > $(window).width()-30) resetPos();
 			
-			transformMSToTime(Cookies.get('currentTime'));
-			
-			var statusTimer = (typeof Cookies.get('statusTimer') == 'undefined')?settings.statusTimerInit:Cookies.get('statusTimer');
 			if (statusTimer=='running') {
 				$('#startButton').css('display', 'none');
 				$('#clearButton').css('display', 'none');
@@ -73,27 +77,28 @@
 				startTimer();
 			}
 			
+			expandcollapseOnClick();
+			resetPosOnClick();
+			transformMSToTime(Cookies.get('currentTime'));
 			startTimerOnClick();
 			pauseTimerOnClick();
 			clearTimerOnClick();
 			saveTimerOnExit();
 			
-			if (Cookies.get('clockieX') != null && Cookies.get('clockieX') > -160 && Cookies.get('clockieX') < $(window).width()-20) elem.css('left', Cookies.get('clockieX')+'px');
-			else $('.clk_resetpos').trigger('click');
-			
-			if (Cookies.get('clockieY') != null && Cookies.get('clockieY') < $(window).height()-20 && Cookies.get('clockieY') > -160) elem.css('top', Cookies.get('clockieY')+'px');
-			else $('.clk_resetpos').trigger('click');
-			
 			if (Cookies.get('collapsedDiv')=='true')	{
 				elem.addClass("active");
 				collapsedDiv = elem.hasClass('active');
+			}
+			if (Cookies.get('positionDiv')=='left')	{
+				elem.addClass("leftpos");
+				positionDiv = elem.hasClass('leftpos')?'left':'right';
 			}
 			
 			// CALLBACK SEND CURRENT TIME
 			if (settings.hasActionBtn) {
 				$('.btn_action').on('click', function (e) {
 					e.preventDefault();
-					settings.launchAction(parseInt(currentTime/1000));
+					settings.launchAction(parseInt(currentTime/(hasMilliSec?1:1000)));
 				});
 			}
 			
@@ -105,19 +110,63 @@
 			function memoChronoPos() {
 				Cookies.set('clockieX', elem.css('left').replace(/[^-\d\.]/g, ''), { expires: 7 });
 				Cookies.set('clockieY', elem.css('top').replace(/[^-\d\.]/g, ''), { expires: 7 });
-				Cookies.set('collapsedDiv', collapsedDiv, { expires: 7 });				
-				//console.log(Cookies.get('clockieX'));
+				Cookies.set('collapsedDiv', collapsedDiv, { expires: 7 });		
+				Cookies.set('positionDiv', positionDiv, { expires: 7 });							
+				//console.log(Cookies.get('positionDiv'));
+			}
+			
+			// RESET POSITION
+			function resetPos() {
+				collapsedDiv = false;
+				elem.removeClass("active");
+				if (positionDiv=='left') elem.css({ left: '-175px', top: '40%' }).addClass('leftpos');
+				else elem.css({ left: parseInt($(window).width()-25)+'px', top: '40%' }).removeClass('leftpos');
+				elem.one('webkitTransitionEnd oTransitionEnd msTransitionEnd transitionend', function(e) {
+					memoChronoPos();
+				});
+			}
+			
+			// COLLAPSE / EXPAND
+			function expandCollapse() {
+				elem.toggleClass("active");
+				collapsedDiv = elem.hasClass('active');
+				if (positionDiv=='left') {
+					if (collapsedDiv) elem.css('left', "+=180");
+					else elem.css('left', "-=180");						
+				}
+				else {
+					if (collapsedDiv) elem.css('left', "-=180");
+					else elem.css('left', "+=180");
+				}
+				
+				elem.one('webkitTransitionEnd oTransitionEnd msTransitionEnd transitionend', function(e) {
+					var position = elem.position();
+					if (position.left < -170) elem.css('left', "-170px");	
+					if (position.left > $(window).width()-30) elem.css('left',  parseInt($(window).width()-30)+"px"); 
+					memoChronoPos();
+				});
 			}
 			
 			// DRAGGABLE
 			if (settings.isDraggable) {
 				var memo;
 				elem.addClass('cursor_move');
-				$('.clk_btn').addClass('cursor_move');
 				elem.draggable({
+					//cancel: ".clk_btn",
+					containment: [-170, -160, $(window).width()-30, $(window).height()-30],
 					start: function() {
 						memo = $(this).css('transition');
 						$(this).css('transition', 'none');
+					},
+					drag: function(event, ui) {
+						if (ui.position.left < $(window).width()/2 - 100) {
+							$(this).addClass('leftpos');
+							positionDiv = 'left';				
+						}
+						else {
+							$(this).removeClass('leftpos');
+							positionDiv = 'right';				
+						}
 					},
 					stop: function(event, ui) { 
 						memoChronoPos();
@@ -127,35 +176,16 @@
 			}
 			else elem.removeClass('cursor_move');
 			
-			// RESET POSITION
+			
 			function resetPosOnClick() {
-				$('.clk_resetpos').on('click', function (e) {
-					if (elem.hasClass('active')) elem.toggleClass("active");
-					Cookies.set('collapsedDiv', elem.hasClass('active'), { expires: 7 });
-					if (settings.positionInit=='left') elem.css({ left: '-180px', right: 'auto', top: '40%' });
-					else elem.css({ left: 'auto', right: '-180px', top: '40%' });
-					elem.one('webkitTransitionEnd otransitionend oTransitionEnd msTransitionEnd transitionend', function(e) {
-						memoChronoPos();
-					});
+				$('.clk_resetpos').on('click', function () {
+					resetPos();
 				});	
 			}
 			
-			// COLLAPSE / EXPAND
-			function expandcollapseChrono() {
+			function expandcollapseOnClick() {
 				$(".clk_btn").click(function(e) {
-					elem.toggleClass("active");
-					collapsedDiv = elem.hasClass('active');
-					if (settings.positionInit=='left') {
-						if (collapsedDiv) elem.css('left', "+=180");
-						else elem.css('left', "-=180");						
-					}
-					else {
-						if (collapsedDiv) elem.css('right', "+=180");
-						else elem.css('right', "-=180");
-					}
-					elem.one('webkitTransitionEnd otransitionend oTransitionEnd msTransitionEnd transitionend', function(e) {
-						memoChronoPos();
-					});
+					expandCollapse()
 				});	
 			}
 			
@@ -179,6 +209,11 @@
 					var minutes = parseInt(time / 60000) - (hours * 60);
 					var seconds = parseInt(time / 1000) - (minutes * 60) - (hours * 3600);
 					$('#timer').text(addZeros(hours, 2) + ':' + addZeros(minutes, 2) + ':' + addZeros(seconds, 2));
+					if (hasMilliSec) {
+						var milliseconds = parseInt(time % 1000);
+						$('#timer').text(addZeros(hours, 2) + ':' + addZeros(minutes, 2) + ':' + addZeros(seconds, 2) + '.' + addZeros(milliseconds, 3));
+					}
+					
 				}
 				else $('#clearButton').trigger('click');
 			}
@@ -219,11 +254,12 @@
 				$('#clearButton').click(function() {
 					$(this).css('display', 'none');
 					$('#timer').text('00:00:00');
+					if (hasMilliSec) $('#timer').text('00:00:00.000');
 					currentTime = 0;
 					Cookies.set('currentTime', currentTime, { expires: 7 });
 				});
 			}
-
+			
 			function saveTimerOnExit() {
 				window.onbeforeunload = function() {
 					clearInterval(timer);
