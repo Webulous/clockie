@@ -19,7 +19,7 @@ Options
 - isDraggable	| Enable to drag clockie plugin | true
 - actionBtnTxt | Action button label | 'Assign'
 - timerColor | Timer color | '#f25824'
-- launchAction | Callback function when action button is clicked  | return value : currentTime in seconds
+- launchAction | Callback function when action button is clicked  | return value : currentTime in seconds or milliseconds (if option selected)
 
 
 Features
